@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  # MySQL service
+  mysql:
+    image: mysql:8.0  # Specify MySQL version
+    container_name: mysql  # Name of the container
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # MySQL root password
+      MYSQL_DATABASE: shoe_management  # Initial database name
+    ports:
+      - "3307:3306"  # Expose MySQL port
+    volumes:
+      - mysql_data:/var/lib/mysql  # Persistent storage for MySQL data
+    networks:
+      - mynetwork  # Network shared with Spring Boot
+
+  # Spring Boot service
+  springboot:
+    build:
+      context: .  # Path to the build context (your project directory)
+      dockerfile: Dockerfile  # Dockerfile for the Spring Boot app
+    container_name: springboot  # Name of the Spring Boot container
+    depends_on:
+      - mysql  # Wait for MySQL to be up before starting Spring Boot
+    ports:
+      - "9090:8080"  # Expose Spring Boot application port
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shoe_management # MySQL connection URL
+      SPRING_DATASOURCE_USERNAME: root  # MySQL username
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update # MySQL password
+    networks:
+      - mynetwork  # Shared network for Spring Boot and MySQL
+
+# Define the custom network for both services to communicate
+networks:
+  mynetwork:
+    driver: bridge  # Use bridge driver for local communication
+
+# Define persistent volume for MySQL data
+volumes:
+  mysql_data:
